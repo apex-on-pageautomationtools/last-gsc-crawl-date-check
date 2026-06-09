@@ -70,9 +70,9 @@
       display: inline-block;
       font-family: 'Space Mono', monospace;
       font-size: 11px;
-      font-weight: 300;
+      font-weight: 400;
       letter-spacing: 3px;
-      color: white;
+      color: black;
       background: rgba(0, 255, 136, 0.08);
       border: 1px solid rgba(0, 255, 136, 0.2);
       padding: 6px 16px;
@@ -147,7 +147,7 @@
 
     .run-btn {
       background: var(--accent);
-      color: #ffffff;
+      color: black;
       border: none;
       border-radius: 8px;
       padding: 14px 28px;
@@ -467,129 +467,129 @@
 </head>
 
 <body>
-
+ 
   <div class="wrapper">
-
+ 
     <div class="header">
       <div class="badge">GSC Automation Tool</div>
       <h1>Crawl Date<br><span>Tracker</span></h1>
-      <p>Enter domain → Run workflow → Google Sheet updated</p>
+      <p>Enter domain &rarr; Run workflow &rarr; Google Sheet updated</p>
     </div>
-
+ 
     <div class="card">
       <label class="input-label">Domain Name</label>
       <div class="input-row">
-        <input type="text" class="domain-input" id="domainInput" placeholder="removalistauction.com.au"
+        <input type="text" class="domain-input" id="domainInput" placeholder="313movers.com.au"
           autocomplete="off" spellcheck="false" />
         <button class="run-btn" id="runBtn" onclick="runWorkflow()">
-          ▶ Run
+          &#9654; Run
         </button>
       </div>
-
+ 
       <div class="status-box" id="statusBox">
-        <div class="status-icon idle" id="statusIcon">⬡</div>
+        <div class="status-icon idle" id="statusIcon">&#11041;</div>
         <div class="status-text">
           <div class="status-title idle" id="statusTitle">Ready</div>
           <div class="status-sub" id="statusSub">Enter a domain and click Run</div>
         </div>
       </div>
     </div>
-
+ 
     <div class="history-section">
       <div class="history-header">
         <span class="history-title">Run History</span>
         <button class="clear-btn" onclick="clearHistory()">Clear</button>
       </div>
       <div class="history-list" id="historyList">
-        <div class="empty-history" id="emptyMsg">— No runs yet —</div>
+        <div class="empty-history" id="emptyMsg">No runs yet</div>
       </div>
     </div>
-
+ 
     <div class="footer">
-      Connected to <span>Make.com</span> · Webhook Active
+      Connected to <span>Google Apps Script</span> &middot; Always Active
     </div>
-
+ 
   </div>
-
+ 
   <script>
     const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxm5YgWHbrXMmeplTP5q0nY-GLNO1sdIaq0zK7ohiCUdSDJzcSYteA3hN0XW7u-4OBP/exec';
     let history = JSON.parse(localStorage.getItem('gsc_history') || '[]');
-
+ 
     document.getElementById('domainInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') runWorkflow();
     });
-
+ 
     renderHistory();
-
+ 
     async function runWorkflow() {
       const domain = document.getElementById('domainInput').value.trim();
-
+ 
       if (!domain) {
-        setStatus('error', '⚠ Domain Required', 'Please enter a domain name first');
+        setStatus('error', '\u26A0 Domain Required', 'Please enter a domain name first');
         return;
       }
-
+ 
       setStatus('running', 'Processing...', `Running workflow for: ${domain}`);
       document.getElementById('runBtn').disabled = true;
       document.getElementById('domainInput').disabled = true;
-
+ 
       try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ domain: domain })
         });
-
+ 
         const data = await response.json();
-
+ 
         if (data.success) {
-          setStatus('success', '✓ Completed!', `Sheet updated for ${domain} (${data.processed} URLs)`);
+          setStatus('success', '\u2713 Completed!', `Sheet updated for ${domain} (${data.processed} URLs)`);
           addHistory(domain, 'success');
         } else {
-          setStatus('error', '✕ Failed', data.error || 'Workflow encountered an error');
+          setStatus('error', '\u2715 Failed', data.error || 'Workflow encountered an error');
           addHistory(domain, 'error');
         }
-
+ 
       } catch (err) {
-        setStatus('error', '✕ Connection Failed', 'Could not reach the Apps Script web app');
+        setStatus('error', '\u2715 Connection Failed', 'Could not reach the Apps Script web app');
         addHistory(domain, 'error');
       } finally {
         document.getElementById('runBtn').disabled = false;
         document.getElementById('domainInput').disabled = false;
       }
     }
-
+ 
     function setStatus(type, title, sub) {
       const box = document.getElementById('statusBox');
       const icon = document.getElementById('statusIcon');
       const titleEl = document.getElementById('statusTitle');
       const subEl = document.getElementById('statusSub');
-
+ 
       box.className = `status-box ${type}`;
       icon.className = `status-icon ${type}`;
       titleEl.className = `status-title ${type}`;
-
-      const icons = { idle: '⬡', running: '', success: '✓', error: '✕' };
+ 
+      const icons = { idle: '\u2B21', running: '', success: '\u2713', error: '\u2715' };
       const dots = type === 'running'
         ? '<div class="dots"><span></span><span></span><span></span></div>'
         : icons[type];
-
+ 
       icon.innerHTML = dots;
       titleEl.textContent = title;
       subEl.textContent = sub;
     }
-
+ 
     function addHistory(domain, status) {
       const now = new Date();
       const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
       const date = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
-
+ 
       history.unshift({ domain, status, time, date });
       if (history.length > 20) history.pop();
       localStorage.setItem('gsc_history', JSON.stringify(history));
       renderHistory();
     }
-
+ 
     function renderHistory() {
       const list = document.getElementById('historyList');
       if (history.length === 0) {
@@ -597,15 +597,15 @@
         return;
       }
       list.innerHTML = history.map(item => `
-  <div class="history-item">
-    <div class="history-dot ${item.status}"></div>
-    <div class="history-domain">${item.domain}</div>
-    <div class="history-time">${item.date} ${item.time}</div>
-    <div class="history-status ${item.status}">${item.status === 'success' ? 'Done' : 'Failed'}</div>
-  </div>
-`).join('');
+      <div class="history-item">
+        <div class="history-dot ${item.status}"></div>
+        <div class="history-domain">${item.domain}</div>
+        <div class="history-time">${item.date} ${item.time}</div>
+        <div class="history-status ${item.status}">${item.status === 'success' ? 'Done' : 'Failed'}</div>
+      </div>
+    `).join('');
     }
-
+ 
     function clearHistory() {
       history = [];
       localStorage.removeItem('gsc_history');
@@ -613,4 +613,5 @@
     }
   </script>
 </body>
+ 
 </html>
