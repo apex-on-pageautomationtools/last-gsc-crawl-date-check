@@ -1,617 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GSC Crawl Tracker</title>
-  <link rel="icon" type="image/png" href="./favicon.png">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap"
-    rel="stylesheet">
-  <style>
-    :root {
-      --bg: #DCDCDC;
-      --surface: #F5F5F5;
-      --border: #1e1e2e;
-      --accent: #00ff88;
-      --accent2: #00ccff;
-      --danger: #ff4466;
-      --text: black;
-      --muted: #555570;
-      --card: #16161f;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .wrapper {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 680px;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 48px;
-      animation: fadeDown 0.6s ease both;
-    }
-
-    .header .badge {
-      display: inline-block;
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 3px;
-      color: black;
-      background: rgba(0, 255, 136, 0.08);
-      border: 1px solid rgba(0, 255, 136, 0.2);
-      padding: 6px 16px;
-      border-radius: 2px;
-      margin-bottom: 20px;
-      text-transform: uppercase;
-    }
-
-    .header h1 {
-      font-size: 42px;
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -1px;
-    }
-
-    .header h1 span {
-      color: var(--accent);
-    }
-
-    .header p {
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 15px;
-      font-weight: 400;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-      animation: fadeUp 0.6s 0.1s ease both;
-    }
-
-    .input-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .input-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .domain-input {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 18px;
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .domain-input::placeholder {
-      color: var(--muted);
-    }
-
-    .domain-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
-    }
-
-    .run-btn {
-      background: var(--accent);
-      color: black;
-      border: none;
-      border-radius: 8px;
-      padding: 14px 28px;
-      font-family: 'Syne', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
-      white-space: nowrap;
-      letter-spacing: 0.5px;
-    }
-
-    .run-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(0, 255, 136, 0.3);
-    }
-
-    .run-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .run-btn:disabled {
-      background: var(--muted);
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .status-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      transition: border-color 0.3s;
-    }
-
-    .status-box.running {
-      border-color: var(--accent2);
-    }
-
-    .status-box.success {
-      border-color: var(--accent);
-    }
-
-    .status-box.error {
-      border-color: var(--danger);
-    }
-
-    .status-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-
-    .status-icon.idle {
-      background: rgba(85, 85, 112, 0.3);
-    }
-
-    .status-icon.running {
-      background: rgba(0, 204, 255, 0.15);
-      animation: pulse 1.5s infinite;
-    }
-
-    .status-icon.success {
-      background: rgba(0, 255, 136, 0.15);
-    }
-
-    .status-icon.error {
-      background: rgba(255, 68, 102, 0.15);
-    }
-
-    .status-text {
-      flex: 1;
-    }
-
-    .status-title {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 4px;
-    }
-
-    .status-title.running {
-      color: var(--accent2);
-    }
-
-    .status-title.success {
-      color: var(--accent);
-    }
-
-    .status-title.error {
-      color: var(--danger);
-    }
-
-    .status-title.idle {
-      color: var(--muted);
-    }
-
-    .status-sub {
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .dots span {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      background: var(--accent2);
-      border-radius: 50%;
-      margin: 0 2px;
-      animation: bounce 1.2s infinite;
-    }
-
-    .dots span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .dots span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    .history-section {
-      margin-top: 28px;
-      animation: fadeUp 0.6s 0.2s ease both;
-    }
-
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .history-title {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
-    .clear-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
-    }
-
-    .clear-btn:hover {
-      color: var(--danger);
-      border-color: var(--danger);
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 240px;
-      overflow-y: auto;
-    }
-
-    .history-list::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .history-list::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .history-list::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 2px;
-    }
-
-    .history-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px 16px;
-      animation: fadeUp 0.3s ease both;
-    }
-
-    .history-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .history-dot.success {
-      background: var(--accent);
-    }
-
-    .history-dot.error {
-      background: var(--danger);
-    }
-
-    .history-domain {
-      flex: 1;
-      font-family: 'Space Mono', monospace;
-      font-size: 13px;
-      color: var(--text);
-    }
-
-    .history-time {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .history-status {
-      font-size: 12px;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 4px;
-    }
-
-    .history-status.success {
-      background: rgba(0, 255, 136, 0.1);
-      color: var(--accent);
-    }
-
-    .history-status.error {
-      background: rgba(255, 68, 102, 0.1);
-      color: var(--danger);
-    }
-
-    .empty-history {
-      text-align: center;
-      padding: 24px;
-      color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-    }
-
-    .footer {
-      margin-top: 32px;
-      text-align: center;
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      animation: fadeUp 0.6s 0.3s ease both;
-    }
-
-    .footer span {
-      color: var(--accent);
-    }
-
-    @keyframes fadeDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(0, 204, 255, 0.4);
-      }
-
-      50% {
-        box-shadow: 0 0 0 8px rgba(0, 204, 255, 0);
-      }
-    }
-
-    @keyframes bounce {
-
-      0%,
-      80%,
-      100% {
-        transform: scale(0.6);
-        opacity: 0.5;
-      }
-
-      40% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GSC Crawl Tracker</title>
+<link rel="icon" type="image/png" href="./favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#DCDCDC; --surface:#F5F5F5; --border:#1e1e2e;
+  --accent:#00ff88; --accent2:#00ccff; --warning:#ffb84d;
+  --danger:#ff4466; --text:black; --muted:#555570; --card:#16161f;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding:40px 20px}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrapper{position:relative;z-index:1;width:100%;max-width:1100px;margin:0 auto}
+.header{text-align:center;margin-bottom:40px}
+.header .badge{display:inline-block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);padding:6px 16px;border-radius:2px;margin-bottom:20px;text-transform:uppercase}
+.header h1{font-size:42px;font-weight:800;line-height:1.1;letter-spacing:-1px}
+.header h1 span{color:var(--accent)}
+.header p{margin-top:12px;color:var(--muted);font-size:15px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;margin-bottom:24px}
+.input-label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;display:block}
+.urls-input{width:100%;min-height:220px;resize:vertical;line-height:1.6;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:var(--text);font-family:'Space Mono',monospace;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+.urls-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,255,136,.1)}
+.url-count{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.url-count.over span:first-child{color:var(--danger);font-weight:700}
+.btn-row{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn{border:none;border-radius:8px;padding:13px 24px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .2s,background .2s,opacity .2s;letter-spacing:.5px}
+.btn-run{background:var(--accent);color:black}
+.btn-run:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,255,136,.3)}
+.btn-pause{background:var(--warning);color:black}
+.btn-pause:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,184,77,.3)}
+.btn-resume{background:var(--accent2);color:black}
+.btn-resume:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,204,255,.3)}
+.btn-stop{background:var(--danger);color:white}
+.btn-stop:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,68,102,.3)}
+.btn-csv{background:var(--accent);color:black}
+.btn:disabled{background:var(--muted);cursor:not-allowed;transform:none;opacity:.6;color:#999}
+.progress-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;margin-top:18px;display:none}
+.progress-box.visible{display:block}
+.progress-bar-track{background:#d4d4d4;border-radius:6px;height:8px;overflow:hidden;margin:10px 0}
+.progress-bar-fill{background:var(--accent);height:100%;transition:width .3s;width:0%}
+.progress-bar-fill.paused{background:var(--warning)}
+.progress-bar-fill.stopped{background:var(--danger)}
+.progress-info{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;gap:8px}
+.progress-state{font-weight:700;text-transform:uppercase;letter-spacing:1.5px}
+.progress-state.running{color:var(--accent2)}
+.progress-state.paused{color:var(--warning)}
+.progress-state.completed{color:var(--accent)}
+.progress-state.stopped{color:var(--danger)}
+.progress-state.idle{color:var(--muted)}
+.results-card{display:none}
+.results-card.visible{display:block}
+.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+.results-title{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:auto;max-height:600px}
+table{width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:13px}
+thead{position:sticky;top:0;background:#22222e;color:#fff;z-index:1}
+th{text-align:left;padding:12px 14px;font-weight:700;letter-spacing:1px;font-size:11px;text-transform:uppercase}
+td{padding:11px 14px;border-bottom:1px solid #e0e0e0;vertical-align:top;word-break:break-all}
+tbody tr:hover{background:#eaeaea}
+tbody tr.pending td{opacity:.5}
+tbody tr.processing{background:rgba(0,204,255,.05)}
+.badge-ok{background:rgba(0,255,136,.15);color:#0a7d4a;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-never{background:rgba(255,68,102,.12);color:#a8203a;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-err{background:rgba(255,68,102,.12);color:#a8203a;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-pending{background:rgba(85,85,112,.15);color:#555570;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-running{background:rgba(0,204,255,.15);color:#005a87;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.footer{margin-top:32px;text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px}
+.footer span{color:var(--accent)}
+</style>
 </head>
-
 <body>
- 
-  <div class="wrapper">
- 
-    <div class="header">
-      <div class="badge">GSC Automation Tool</div>
-      <h1>Crawl Date<br><span>Tracker</span></h1>
-      <p>Enter domain &rarr; Run workflow &rarr; Google Sheet updated</p>
-    </div>
- 
-    <div class="card">
-      <label class="input-label">Domain Name</label>
-      <div class="input-row">
-        <input type="text" class="domain-input" id="domainInput" placeholder="313movers.com.au"
-          autocomplete="off" spellcheck="false" />
-        <button class="run-btn" id="runBtn" onclick="runWorkflow()">
-          &#9654; Run
-        </button>
-      </div>
- 
-      <div class="status-box" id="statusBox">
-        <div class="status-icon idle" id="statusIcon">&#11041;</div>
-        <div class="status-text">
-          <div class="status-title idle" id="statusTitle">Ready</div>
-          <div class="status-sub" id="statusSub">Enter a domain and click Run</div>
-        </div>
-      </div>
-    </div>
- 
-    <div class="history-section">
-      <div class="history-header">
-        <span class="history-title">Run History</span>
-        <button class="clear-btn" onclick="clearHistory()">Clear</button>
-      </div>
-      <div class="history-list" id="historyList">
-        <div class="empty-history" id="emptyMsg">No runs yet</div>
-      </div>
-    </div>
- 
-    <div class="footer">
-      Connected to <span>Google Apps Script</span> &middot; Always Active
-    </div>
- 
+<div class="wrapper">
+
+  <div class="header">
+    <div class="badge">GSC Automation Tool</div>
+    <h1>Crawl Date<br><span>Tracker</span></h1>
+    <p>Paste up to 100 URLs &middot; pause anytime &middot; download CSV</p>
   </div>
- 
-  <script>
-    const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxm5YgWHbrXMmeplTP5q0nY-GLNO1sdIaq0zK7ohiCUdSDJzcSYteA3hN0XW7u-4OBP/exec';
-    let history = JSON.parse(localStorage.getItem('gsc_history') || '[]');
- 
-    document.getElementById('domainInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') runWorkflow();
-    });
- 
-    renderHistory();
- 
-    async function runWorkflow() {
-      const domain = document.getElementById('domainInput').value.trim();
- 
-      if (!domain) {
-        setStatus('error', '\u26A0 Domain Required', 'Please enter a domain name first');
-        return;
-      }
- 
-      setStatus('running', 'Processing...', `Running workflow for: ${domain}`);
-      document.getElementById('runBtn').disabled = true;
-      document.getElementById('domainInput').disabled = true;
- 
-      try {
-        const response = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ domain: domain })
-        });
- 
-        const data = await response.json();
- 
-        if (data.success) {
-          setStatus('success', '\u2713 Completed!', `Sheet updated for ${domain} (${data.processed} URLs)`);
-          addHistory(domain, 'success');
-        } else {
-          setStatus('error', '\u2715 Failed', data.error || 'Workflow encountered an error');
-          addHistory(domain, 'error');
-        }
- 
-      } catch (err) {
-        setStatus('error', '\u2715 Connection Failed', 'Could not reach the Apps Script web app');
-        addHistory(domain, 'error');
-      } finally {
-        document.getElementById('runBtn').disabled = false;
-        document.getElementById('domainInput').disabled = false;
-      }
-    }
- 
-    function setStatus(type, title, sub) {
-      const box = document.getElementById('statusBox');
-      const icon = document.getElementById('statusIcon');
-      const titleEl = document.getElementById('statusTitle');
-      const subEl = document.getElementById('statusSub');
- 
-      box.className = `status-box ${type}`;
-      icon.className = `status-icon ${type}`;
-      titleEl.className = `status-title ${type}`;
- 
-      const icons = { idle: '\u2B21', running: '', success: '\u2713', error: '\u2715' };
-      const dots = type === 'running'
-        ? '<div class="dots"><span></span><span></span><span></span></div>'
-        : icons[type];
- 
-      icon.innerHTML = dots;
-      titleEl.textContent = title;
-      subEl.textContent = sub;
-    }
- 
-    function addHistory(domain, status) {
-      const now = new Date();
-      const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      const date = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
- 
-      history.unshift({ domain, status, time, date });
-      if (history.length > 20) history.pop();
-      localStorage.setItem('gsc_history', JSON.stringify(history));
-      renderHistory();
-    }
- 
-    function renderHistory() {
-      const list = document.getElementById('historyList');
-      if (history.length === 0) {
-        list.innerHTML = '<div class="empty-history">No runs yet</div>';
-        return;
-      }
-      list.innerHTML = history.map(item => `
-      <div class="history-item">
-        <div class="history-dot ${item.status}"></div>
-        <div class="history-domain">${item.domain}</div>
-        <div class="history-time">${item.date} ${item.time}</div>
-        <div class="history-status ${item.status}">${item.status === 'success' ? 'Done' : 'Failed'}</div>
+
+  <div class="card">
+    <label class="input-label">URLs (one per line, max 100)</label>
+    <textarea class="urls-input" id="urlsInput" placeholder="https://example.com/page-1&#10;https://anotherdomain.com/about&#10;https://thirdsite.com/contact" spellcheck="false" oninput="updateCount()"></textarea>
+    <div class="url-count" id="urlCount"><span>0 / 100 URLs</span><span id="domainSummary"></span></div>
+
+    <div class="btn-row">
+      <button class="btn btn-run" id="runBtn" onclick="startWorkflow()">&#9654; Run</button>
+      <button class="btn btn-pause" id="pauseBtn" onclick="pauseWorkflow()" disabled>&#10074;&#10074; Pause</button>
+      <button class="btn btn-resume" id="resumeBtn" onclick="resumeWorkflow()" disabled>&#9654; Resume</button>
+      <button class="btn btn-stop" id="stopBtn" onclick="stopWorkflow()" disabled>&#9632; Stop</button>
+    </div>
+
+    <div class="progress-box" id="progressBox">
+      <div class="progress-info">
+        <span><span class="progress-state idle" id="progressState">Idle</span> &middot; <span id="progressCount">0 / 0</span></span>
+        <span id="progressEta"></span>
       </div>
-    `).join('');
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <div class="progress-info">
+        <span id="progressDetail">Ready</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card results-card" id="resultsCard">
+    <div class="results-header">
+      <span class="results-title">Results</span>
+      <button class="btn btn-csv" onclick="downloadCSV()">&darr; Download CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>URL</th><th>Domain</th><th>Last Crawl Date</th><th>Index Status</th></tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">Connected to <span>Google Apps Script</span> &middot; Config Hidden</div>
+</div>
+
+<script>
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxm5YgWHbrXMmeplTP5q0nY-GLNO1sdIaq0zK7ohiCUdSDJzcSYteA3hN0XW7u-4OBP/exec';
+
+let workflow = {
+  items: [],
+  results: [],
+  currentIndex: 0,
+  state: 'idle',
+  startTime: null
+};
+
+function updateCount(){
+  const lines = document.getElementById('urlsInput').value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const counter = document.getElementById('urlCount');
+  const summary = document.getElementById('domainSummary');
+
+  const unique = new Set(lines);
+  const dupCount = lines.length - unique.size;
+
+  counter.firstElementChild.textContent = lines.length + ' / 100 URLs' + (dupCount > 0 ? ' (' + dupCount + ' duplicate' + (dupCount === 1 ? '' : 's') + ')' : '');
+
+  if(lines.length > 100){
+    counter.classList.add('over');
+  } else {
+    counter.classList.remove('over');
+  }
+
+  const domains = new Set();
+  unique.forEach(u => {
+    const m = u.match(/^https?:\/\/([^\/]+)/i);
+    if(m) domains.add(m[1].toLowerCase().replace(/^www\./, ''));
+  });
+  summary.textContent = domains.size > 0 ? domains.size + ' unique domain' + (domains.size === 1 ? '' : 's') : '';
+}
+
+async function startWorkflow(){
+  const rawLines = document.getElementById('urlsInput').value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  if(rawLines.length === 0){ alert('Please paste at least one URL.'); return; }
+
+  const seen = new Set();
+  const urls = [];
+  let duplicatesRemoved = 0;
+  rawLines.forEach(url => {
+    if(seen.has(url)){
+      duplicatesRemoved++;
+    } else {
+      seen.add(url);
+      urls.push(url);
     }
- 
-    function clearHistory() {
-      history = [];
-      localStorage.removeItem('gsc_history');
-      renderHistory();
+  });
+
+  if(urls.length > 100){
+    alert('Maximum 100 unique URLs allowed per batch. You have ' + urls.length + ' after removing duplicates.');
+    return;
+  }
+
+  if(duplicatesRemoved > 0){
+    document.getElementById('urlsInput').value = urls.join('\n');
+    updateCount();
+  }
+
+  const introMsg = duplicatesRemoved > 0
+    ? 'Validating ' + urls.length + ' unique URLs (' + duplicatesRemoved + ' duplicate' + (duplicatesRemoved === 1 ? '' : 's') + ' removed)...'
+    : 'Validating ' + urls.length + ' URLs...';
+  setProgressState('running', introMsg);
+  setButtons({ run: false, pause: false, resume: false, stop: false });
+
+  try {
+    const resp = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'validate_batch', urls: urls })
+    });
+    const data = await resp.json();
+
+    if(!data.success){
+      setProgressState('stopped', data.error);
+      setButtons({ run: true, pause: false, resume: false, stop: false });
+      return;
     }
-  </script>
+
+    workflow.items = data.items;
+    workflow.results = data.items.map(i => ({
+      url: i.url,
+      domain: i.domain || '-',
+      accountKey: i.accountKey || '',
+      lastCrawlDate: i.ready ? 'Pending' : 'Skipped',
+      indexStatus: i.ready ? 'Pending' : (i.error || 'Unknown'),
+      status: i.ready ? 'pending' : 'error'
+    }));
+    workflow.currentIndex = 0;
+    workflow.state = 'running';
+    workflow.startTime = Date.now();
+
+    document.getElementById('progressBox').classList.add('visible');
+    document.getElementById('resultsCard').classList.add('visible');
+    renderTable();
+
+    setButtons({ run: false, pause: true, resume: false, stop: true });
+    processNext();
+
+  } catch(err){
+    setProgressState('stopped', 'Connection failed: ' + err.message);
+    setButtons({ run: true, pause: false, resume: false, stop: false });
+  }
+}
+
+async function processNext(){
+  if(workflow.state !== 'running') return;
+
+  while(workflow.currentIndex < workflow.items.length && !workflow.items[workflow.currentIndex].ready){
+    workflow.currentIndex++;
+  }
+
+  if(workflow.currentIndex >= workflow.items.length){
+    workflow.state = 'completed';
+    setProgressState('completed', 'All URLs processed.');
+    setButtons({ run: true, pause: false, resume: false, stop: false });
+    updateProgress();
+    return;
+  }
+
+  const item = workflow.items[workflow.currentIndex];
+  renderTable();
+  updateProgress();
+
+  try {
+    const resp = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'inspect_single',
+        url: item.url,
+        domain: item.domain,
+        accountKey: item.accountKey
+      })
+    });
+    const data = await resp.json();
+
+    if(data.success){
+      workflow.results[workflow.currentIndex] = {
+        url: data.url,
+        domain: data.domain,
+        accountKey: data.accountKey,
+        lastCrawlDate: data.lastCrawlDate,
+        indexStatus: data.indexStatus,
+        status: 'ok'
+      };
+    } else {
+      workflow.results[workflow.currentIndex].lastCrawlDate = 'Error';
+      workflow.results[workflow.currentIndex].indexStatus = data.error || 'Unknown error';
+      workflow.results[workflow.currentIndex].status = 'error';
+    }
+  } catch(err){
+    workflow.results[workflow.currentIndex].lastCrawlDate = 'Error';
+    workflow.results[workflow.currentIndex].indexStatus = 'Network error';
+    workflow.results[workflow.currentIndex].status = 'error';
+  }
+
+  renderTable();
+  workflow.currentIndex++;
+
+  await sleep(300);
+
+  if(workflow.state === 'running'){
+    processNext();
+  }
+}
+
+function pauseWorkflow(){
+  if(workflow.state !== 'running') return;
+  workflow.state = 'paused';
+  setProgressState('paused', 'Paused. Click Resume to continue.');
+  setButtons({ run: false, pause: false, resume: true, stop: true });
+}
+
+function resumeWorkflow(){
+  if(workflow.state !== 'paused') return;
+  workflow.state = 'running';
+  setProgressState('running', 'Resuming...');
+  setButtons({ run: false, pause: true, resume: false, stop: true });
+  processNext();
+}
+
+function stopWorkflow(){
+  if(!confirm('Stop the workflow? Already-fetched results will be kept and can be downloaded.')) return;
+  workflow.state = 'stopped';
+  setProgressState('stopped', 'Stopped by user. ' + countCompleted() + ' URLs fetched.');
+  setButtons({ run: true, pause: false, resume: false, stop: false });
+}
+
+function countCompleted(){
+  return workflow.results.filter(r => r.status === 'ok' || r.status === 'error').length;
+}
+
+function setButtons({ run, pause, resume, stop }){
+  document.getElementById('runBtn').disabled = !run;
+  document.getElementById('pauseBtn').disabled = !pause;
+  document.getElementById('resumeBtn').disabled = !resume;
+  document.getElementById('stopBtn').disabled = !stop;
+}
+
+function setProgressState(state, detail){
+  const stateEl = document.getElementById('progressState');
+  const fill = document.getElementById('progressFill');
+  stateEl.className = 'progress-state ' + state;
+  stateEl.textContent = state;
+  fill.className = 'progress-bar-fill' + (state === 'paused' ? ' paused' : state === 'stopped' ? ' stopped' : '');
+  document.getElementById('progressDetail').textContent = detail;
+  updateProgress();
+}
+
+function updateProgress(){
+  const done = workflow.currentIndex;
+  const total = workflow.items.length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progressCount').textContent = done + ' / ' + total + ' (' + pct + '%)';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  if(workflow.state === 'running' && done > 0){
+    const elapsed = (Date.now() - workflow.startTime) / 1000;
+    const perItem = elapsed / done;
+    const remaining = Math.round((total - done) * perItem);
+    document.getElementById('progressEta').textContent = 'ETA: ~' + remaining + 's';
+  } else {
+    document.getElementById('progressEta').textContent = '';
+  }
+}
+
+function renderTable(){
+  const body = document.getElementById('resultsBody');
+  body.innerHTML = workflow.results.map((r, i) => {
+    let rowClass = '';
+    if(r.status === 'pending') rowClass = 'pending';
+    else if(i === workflow.currentIndex && workflow.state === 'running') rowClass = 'processing';
+
+    let badgeClass = 'badge-pending';
+    let badgeText = r.lastCrawlDate;
+    if(r.status === 'ok'){
+      badgeClass = r.lastCrawlDate === 'Never Crawled' ? 'badge-never' : 'badge-ok';
+    } else if(r.status === 'error'){
+      badgeClass = 'badge-err';
+    } else if(i === workflow.currentIndex && workflow.state === 'running'){
+      badgeClass = 'badge-running';
+      badgeText = 'Checking...';
+    }
+
+    return '<tr class="' + rowClass + '"><td>' + (i+1) + '</td><td>' + escapeHtml(r.url) + '</td><td>' + escapeHtml(r.domain) + '</td><td><span class="' + badgeClass + '">' + escapeHtml(badgeText) + '</span></td><td>' + escapeHtml(r.indexStatus) + '</td></tr>';
+  }).join('');
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function downloadCSV(){
+  if(workflow.results.length === 0){ alert('No results to download yet.'); return; }
+  const header = ['URL','Domain','Last Crawl Date','Index Status'];
+  const rows = workflow.results.map(r => [r.url, r.domain, r.lastCrawlDate, r.indexStatus]);
+  const csv = [header, ...rows].map(row => row.map(cell => '"' + String(cell).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'gsc_crawl_dates_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+</script>
 </body>
- 
 </html>
