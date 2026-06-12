@@ -321,6 +321,7 @@ let workflow = {
   currentIndex: 0,
   state: 'idle',
   startTime: null
+  batchId: ''
 };
 
 function updateCount(){
@@ -396,6 +397,7 @@ async function startWorkflow(){
     }
 
     workflow.items = data.items;
+	workflow.batchId = data.batchId || '';   // <-- add this line
     workflow.results = data.items.map(i => ({
       url: i.url,
       domain: i.domain || '-',
@@ -445,11 +447,12 @@ async function processNext(){
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
-        action: 'inspect_single',
-        url: item.url,
-        domain: item.domain,
-        accountKey: item.accountKey
-      })
+  action: 'inspect_single',
+  url: item.url,
+  domain: item.domain,
+  accountKey: item.accountKey,
+  batchId: workflow.batchId
+})
     });
     const data = await resp.json();
 
