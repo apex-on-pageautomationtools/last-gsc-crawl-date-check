@@ -239,6 +239,11 @@ tbody tr.processing:hover{background:rgba(255,77,46,.08)}
 .badge-pending{background:#F5EBDD;color:var(--muted-2)}
 .badge-running{background:var(--info-bg);color:var(--info)}
 
+/* Index status cell (full reason / error text) */
+td.idx{white-space:normal;word-break:break-word}
+td.idx.idx-err{color:var(--danger);font-weight:600}
+td.idx .prop{font-size:10px;color:var(--muted-2);margin-top:4px;opacity:.85;word-break:break-all}
+
 /* Footer */
 .footer{
   margin-top:36px;text-align:center;
@@ -463,6 +468,7 @@ async function processNext(){
         accountKey: data.accountKey,
         lastCrawlDate: data.lastCrawlDate,
         indexStatus: data.indexStatus,
+        property: data.property || '',
         status: 'ok'
       };
     } else {
@@ -564,7 +570,10 @@ function renderTable(){
       badgeText = 'Checking...';
     }
 
-    return '<tr class="' + rowClass + '"><td>' + (i+1) + '</td><td>' + escapeHtml(r.url) + '</td><td>' + escapeHtml(r.domain) + '</td><td><span class="' + badgeClass + '">' + escapeHtml(badgeText) + '</span></td><td>' + escapeHtml(r.indexStatus) + '</td></tr>';
+    const idxCls = 'idx' + (r.status === 'error' ? ' idx-err' : '');
+    const propHtml = r.property ? '<div class="prop">via ' + escapeHtml(r.property) + '</div>' : '';
+    const idxTitle = escapeHtml((r.indexStatus || '') + (r.property ? ' — checked via ' + r.property : ''));
+    return '<tr class="' + rowClass + '"><td>' + (i+1) + '</td><td>' + escapeHtml(r.url) + '</td><td>' + escapeHtml(r.domain) + '</td><td><span class="' + badgeClass + '">' + escapeHtml(badgeText) + '</span></td><td class="' + idxCls + '" title="' + idxTitle + '">' + escapeHtml(r.indexStatus) + propHtml + '</td></tr>';
   }).join('');
 }
 
@@ -574,8 +583,8 @@ function escapeHtml(s){
 
 function downloadCSV(){
   if(workflow.results.length === 0){ alert('No results to download yet.'); return; }
-  const header = ['URL','Domain','Last Crawl Date','Index Status'];
-  const rows = workflow.results.map(r => [r.url, r.domain, r.lastCrawlDate, r.indexStatus]);
+  const header = ['URL','Domain','Last Crawl Date','Index Status','GSC Property'];
+  const rows = workflow.results.map(r => [r.url, r.domain, r.lastCrawlDate, r.indexStatus, r.property || '']);
   const csv = [header, ...rows].map(row => row.map(cell => '"' + String(cell).replace(/"/g,'""') + '"').join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
